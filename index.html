@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Oliviera</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Drogaria Mais Barato - Medicamentos com os melhores preços em São Bernardo do Campo">
+  <title>Drogaria Mais Barato 💊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="https://drogariasmaisbarato.com.br/wp-content/uploads/2026/03/cropped-Design-sem-nome-56.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- 🔝 HEADER -->
+<header class="header" role="banner">
+  <div class="header-left">
+    <img
+      src="https://drogariasmaisbarato.com.br/wp-content/uploads/2026/03/cropped-Design-sem-nome-56.png"
+      class="logo"
+      alt="Logo Drogaria Mais Barato"
+      width="40" height="40"
+    >
+    <div class="titulo">
+      <h1>Drogaria Mais Barato</h1>
+      <span id="status" class="status-aberto">🟢 Aberto</span>
+    </div>
+  </div>
+
+  <button class="header-carrinho" onclick="toggleCarrinho()" aria-label="Abrir carrinho">
+    🛒 <span id="qtdTop">(0)</span>
+    <span id="totalTop">R$ 0,00</span>
+  </button>
+</header>
+
+<!-- 🔍 BUSCA -->
+<section class="busca-container" role="search">
+  <div class="busca-wrapper">
+    <span class="busca-icon" aria-hidden="true">🔍</span>
+    <input
+      type="search"
+      id="busca"
+      placeholder="Buscar medicamentos..."
+      autocomplete="off"
+      aria-label="Buscar produtos"
+      onkeydown="if(event.key==='Enter') buscar()"
+    >
+  </div>
+  <button onclick="buscar()" class="btn-buscar">Buscar</button>
+</section>
+
+<!-- 🎯 FILTROS -->
+<nav id="filtros" class="filtros" aria-label="Categorias"></nav>
+
+<!-- 🎠 BANNER -->
+<section class="banner" aria-label="Promoções">
+  <div class="banner-container">
+    <div class="banner-slide ativo">🔥 ATÉ 50% OFF EM MEDICAMENTOS</div>
+    <div class="banner-slide">💊 FRETE GRÁTIS ACIMA DE R$ 50</div>
+    <div class="banner-slide">⚡ COMPRE PELO SITE E RETIRE NA LOJA</div>
+    <div class="banner-slide">🚀 NÃO ENCONTROU? ENCOMENDAMOS PARA VOCÊ!</div>
+  </div>
+</section>
+
+<!-- 🔥 MAIS VENDIDOS -->
+<section class="mais-vendidos" aria-label="Mais vendidos">
+  <h2>🔥 Mais Vendidos</h2>
+  <div id="listaMaisVendidos" class="scroll-horizontal"></div>
+</section>
+
+<!-- 📦 PRODUTOS -->
+<main id="produtos" aria-label="Lista de produtos" aria-live="polite"></main>
+
+<!-- ⏳ LOADER -->
+<div id="loader" class="loader" aria-hidden="true">
+  <div class="loader-spinner"></div>
+</div>
+
+<!-- 🛒 CARRINHO -->
+<aside id="carrinho" class="carrinho" role="complementary" aria-label="Carrinho de compras">
+  <button class="carrinho-header" onclick="toggleCarrinho()" aria-expanded="false">
+    <span>🛒 Carrinho</span>
+    <span><span id="qtd">(0)</span> · <span id="total">R$ 0,00</span></span>
+  </button>
+
+  <div class="carrinho-body">
+    <div id="itens"></div>
+
+    <div class="carrinho-form">
+
+      <select id="tipoEntrega" onchange="toggleEndereco()">
+        <option value="Retirada">🏪 Retirada na loja</option>
+        <option value="Entrega">🚚 Entrega em casa</option>
+      </select>
+
+      <input type="text" id="nome" placeholder="Seu nome *">
+      <input type="tel" id="telefone" placeholder="Telefone *">
+
+      <div id="boxEndereco" style="display:none;">
+
+        <input type="text" id="cep" placeholder="CEP *"
+          maxlength="9"
+          oninput="mascaraCEP(this); resetarFrete();"
+          onblur="buscarCEP()">
+
+        <input type="text" id="endereco" placeholder="Rua" readonly>
+        <input type="text" id="numero" placeholder="Número *" oninput="resetarFrete()">
+        <input type="text" id="bairro" placeholder="Bairro" readonly>
+        <input type="text" id="cidade" placeholder="Cidade" readonly>
+
+        <button type="button" id="btnCalcularFrete" class="btn-calcular-frete" onclick="calcularFrete()">
+          📍 Calcular taxa de entrega
+        </button>
+
+        <div id="resultadoFrete" class="resultado-frete" style="display:none;"></div>
+
+      </div>
+
+      <select id="pagamento" onchange="trocarPagamento()">
+        <option value="">💳 Forma de pagamento</option>
+        <option value="Pix">Pix</option>
+        <option value="Dinheiro">Dinheiro</option>
+        <option value="Cartão Crédito">Cartão Crédito</option>
+        <option value="Cartão Débito">Cartão Débito</option>
+      </select>
+
+      <div id="boxTroco" style="display:none;">
+        <input type="number" id="trocoInput" placeholder="Troco para quanto?">
+      </div>
+
+    </div>
+
+    <div class="carrinho-acoes">
+      <button class="btn-finalizar" onclick="finalizar()">✅ Finalizar Pedido</button>
+      <button class="btn-limpar" onclick="limparCarrinho()">🗑️ Limpar</button>
+    </div>
+  </div>
+</aside>
+
+<!-- 🔝 VOLTAR AO TOPO -->
+<button id="voltarTopo" class="voltar-topo" aria-label="Voltar ao topo">
+  <span></span>
+  <p>Voltar ao topo ▲</p>
+  <span></span>
+</button>
+
+<!-- 🔔 TOAST -->
+<div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+
+<!-- 📄 RODAPÉ -->
+<footer class="rodape" role="contentinfo">
+  <div class="rodape-container">
+    <p><strong>Copyright © Drogaria Mais Barato | CNPJ: 37.925.108/0001-03</strong></p>
+    <p>São Bernardo do Campo - SP: Rua Almeida Leme 07-Loja 1,
+Parque Sao Bernardo,São Bernardo do Campo-SP CEP:09761-170<br>
+      DRA LAIS CARVALHO DA SILVA CRF 122886 | Autorização: Processo 25351.507967/2022-82 | MS: 7.89888-2</p>
+    <p>As informações deste site não substituem orientação médica e não devem ser usadas para automedicação.</p>
+    <p>Fotos meramente ilustrativas. Preços sujeitos a alterações sem aviso prévio.</p>
+    <p>⚕️ Antibióticos somente com receita. Portaria nº 344 — Ministério da Saúde.</p>
+  </div>
+</footer>
+
+<script src="script.js" defer></script>
+</body>
+</html>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>
