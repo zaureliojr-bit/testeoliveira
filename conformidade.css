@@ -1,0 +1,230 @@
+/* =========================
+📷 PÁGINA DE CONFORMIDADE
+========================= */
+.voltar-loja {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.status-base {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.conf-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 14px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.conf-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.conf-card h2 {
+  font-size: 15px;
+  color: var(--primary-dark);
+  margin-bottom: 12px;
+}
+
+/* --- Leitor de câmera --- */
+.leitor {
+  width: 100%;
+  min-height: 200px;
+  background: #000;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.conf-scanner-botoes {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.btn-conf {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background .15s;
+}
+
+.btn-conf:hover { background: var(--primary-dark); }
+
+.btn-conf.btn-secundario {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.btn-conf.btn-pequeno {
+  flex: none;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.btn-remover {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+}
+
+/* --- Busca manual --- */
+.conf-manual {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.conf-manual label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.conf-manual-linha {
+  display: flex;
+  gap: 8px;
+}
+
+.conf-manual-linha input {
+  flex: 1;
+}
+
+/* --- Campos --- */
+input[type="text"],
+input[type="date"],
+input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--white);
+}
+
+input:focus { outline: 2px solid var(--primary-light); border-color: var(--primary); }
+input[readonly] { background: var(--bg); color: var(--text-muted); }
+
+.conf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.conf-campo-full { grid-column: 1 / -1; }
+
+.conf-campo label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.conf-aviso {
+  background: #fff6e5;
+  color: #8a6100;
+  border: 1px solid #ffe1a3;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.conf-nota {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--primary-xlight);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.conf-acoes {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- Histórico --- */
+.conf-historico-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.conf-historico-header h2 { margin: 0; display: flex; align-items: center; gap: 8px; }
+
+.conf-badge {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.conf-historico-botoes { display: flex; gap: 8px; }
+
+.conf-tabela-wrap { overflow-x: auto; }
+
+.conf-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.conf-tabela th,
+.conf-tabela td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.conf-tabela th {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.conf-vazio {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 20px 0;
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .conf-grid { grid-template-columns: 1fr; }
+}
