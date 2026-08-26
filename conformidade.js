@@ -58,11 +58,16 @@ async function carregarBase() {
 /* =========================
 📷 LEITOR DE CÓDIGO DE BARRAS
 ========================= */
-function iniciarLeitor() {
+async function iniciarLeitor() {
   if (leitorAtivo) return;
 
   if (typeof Html5Qrcode === "undefined") {
     toast("Biblioteca do leitor não carregou. Verifique sua conexão.");
+    return;
+  }
+
+  if (!window.isSecureContext) {
+    toast("Abra o site em HTTPS para usar a câmera (obrigatório no iOS/Safari).");
     return;
   }
 
@@ -78,22 +83,35 @@ function iniciarLeitor() {
     verbose: false
   });
 
-  leitorAtivo
-    .start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 280, height: 150 } },
-      onLeituraSucesso,
-      () => {} // erro de leitura de frame (ignorado, é normal enquanto mira)
-    )
-    .then(() => {
-      el("btnIniciar").style.display = "none";
-      el("btnParar").style.display = "inline-flex";
-    })
-    .catch(err => {
-      console.error("Erro ao iniciar câmera", err);
-      toast("Não foi possível acessar a câmera. Use a busca manual.");
+  const configLeitura = { fps: 10, qrbox: { width: 280, height: 150 } };
+
+  try {
+    // No iOS/Safari o facingMode "environment" às vezes falha silenciosamente
+    // (principalmente em iPhones mais antigos ou em modo PWA). Tenta primeiro
+    // o jeito simples e, se falhar, escolhe a câmera manualmente pela lista.
+    await leitorAtivo.start({ facingMode: "environment" }, configLeitura, onLeituraSucesso, () => {});
+  } catch (err1) {
+    console.warn("facingMode environment falhou, tentando listar câmeras", err1);
+    try {
+      const cameras = await Html5Qrcode.getCameras();
+      if (!cameras || !cameras.length) throw new Error("Nenhuma câmera encontrada");
+
+      // Prioriza uma câmera cujo nome sugira ser a traseira; senão usa a última
+      // da lista (no iOS, quando há 2 câmeras, a traseira normalmente vem depois).
+      const traseira = cameras.find(c => /back|traseira|rear|environment/i.test(c.label));
+      const escolhida = traseira || cameras[cameras.length - 1];
+
+      await leitorAtivo.start(escolhida.id, configLeitura, onLeituraSucesso, () => {});
+    } catch (err2) {
+      console.error("Erro ao iniciar câmera", err2);
+      toast("Não foi possível acessar a câmera. Verifique a permissão nas Configurações do Safari, ou use a busca manual.");
       leitorAtivo = null;
-    });
+      return;
+    }
+  }
+
+  el("btnIniciar").style.display = "none";
+  el("btnParar").style.display = "inline-flex";
 }
 
 function pararLeitor() {
