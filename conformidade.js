@@ -299,3 +299,69 @@ function exportarCSV() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+/* =========================
+📊 EXPORTAR BALANÇO (XLSX)
+========================= */
+function exportarXLSX() {
+  if (!historico.length) return toast("Nenhum item no balanço para exportar");
+
+  if (typeof XLSX === "undefined") {
+    toast("Biblioteca de exportação não carregou. Verifique sua conexão.");
+    return;
+  }
+
+  const agora = new Date();
+  const dataHora = agora.toLocaleString("pt-BR");
+  const totalItens = historico.length;
+  const totalUnidades = historico.reduce((soma, r) => soma + (Number(r.quantidade) || 0), 0);
+
+  const cabecalhoColunas = ["Registro MS", "Descrição", "Apresentação", "Lote", "Validade", "Quantidade", "Código de barras"];
+
+  // Ordena por descrição para facilitar a conferência física no balanço
+  const linhasOrdenadas = [...historico].sort((a, b) => a.descricao.localeCompare(b.descricao, "pt-BR"));
+
+  const linhasDados = linhasOrdenadas.map(r => [
+    r.registroMs || "-",
+    r.descricao,
+    r.apresentacao || "-",
+    r.lote,
+    formatarDataBr(r.validade),
+    r.quantidade,
+    r.codigo || "-"
+  ]);
+
+  const aoa = [
+    ["Balanço de Produtos Controlados — Drogaria Mais Barato"],
+    [`Data do balanço: ${dataHora}`],
+    [`Total de itens: ${totalItens}    |    Total de unidades: ${totalUnidades}`],
+    [],
+    cabecalhoColunas,
+    ...linhasDados,
+    [],
+    ["", "", "", "", "TOTAL", totalUnidades, ""]
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  ws["!cols"] = [
+    { wch: 16 }, // Registro MS
+    { wch: 34 }, // Descrição
+    { wch: 40 }, // Apresentação
+    { wch: 14 }, // Lote
+    { wch: 12 }, // Validade
+    { wch: 12 }, // Quantidade
+    { wch: 16 }  // Código de barras
+  ];
+
+  ws["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Balanço");
+
+  XLSX.writeFile(wb, `balanco_controlados_${agora.toISOString().slice(0, 10)}.xlsx`);
+}

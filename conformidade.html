@@ -106,9 +106,10 @@
   <!-- 🗂️ HISTÓRICO -->
   <section class="conf-card">
     <div class="conf-historico-header">
-      <h2>Registros salvos <span id="contadorHistorico" class="conf-badge">0</span></h2>
+      <h2>Itens do balanço <span id="contadorHistorico" class="conf-badge">0</span></h2>
       <div class="conf-historico-botoes">
-        <button class="btn-conf btn-pequeno" onclick="exportarCSV()">⬇️ Exportar CSV</button>
+        <button class="btn-conf btn-pequeno" onclick="exportarXLSX()">📊 Exportar balanço (XLSX)</button>
+        <button class="btn-conf btn-pequeno btn-secundario" onclick="exportarCSV()">⬇️ CSV</button>
         <button class="btn-conf btn-pequeno btn-secundario" onclick="limparHistorico()">🗑️ Limpar tudo</button>
       </div>
     </div>
@@ -137,6 +138,7 @@
 <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="conformidade.js" defer></script>
 </body>
 </html>
