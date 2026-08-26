@@ -29,6 +29,59 @@
   gap: 16px;
 }
 
+.conf-link-cruzado {
+  text-align: center;
+  font-size: 12px;
+  margin: 0;
+}
+
+.conf-link-cruzado a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.conf-link-cruzado a:hover { text-decoration: underline; }
+
+.conf-import-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+.conf-mapeamento-grid { margin-top: 14px; }
+
+.conf-mapeamento-grid select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--white);
+}
+
+input[type="file"] {
+  width: 100%;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+input[type="file"]::file-selector-button {
+  padding: 8px 14px;
+  margin-right: 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--white);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .conf-card {
   background: var(--white);
   border-radius: var(--radius-lg);
