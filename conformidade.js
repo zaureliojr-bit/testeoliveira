@@ -14,6 +14,7 @@ let urlNuvem = localStorage.getItem(URL_NUVEM_KEY) || "";
 let leitorAtivo = null;
 let ultimoCodigoLido = "";
 let ultimoCodigoTimestamp = 0;
+let indiceEmEdicao = null; // índice do historico sendo editado, ou null se for um item novo
 
 /* =========================
 🛠️ HELPERS
@@ -32,6 +33,11 @@ function toast(msg) {
 
 function apenasDigitos(s) {
   return (s || "").replace(/\D/g, "");
+}
+
+function gerarId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function uppercaseLote(input) {
@@ -324,6 +330,10 @@ function buscarPorCodigo(codigoBruto) {
 function mostrarResultado(codigo, registro) {
   const [reg, produto, substancia, apresentacao, laboratorio] = registro || ["", "", "", "", ""];
 
+  indiceEmEdicao = null;
+  el("tituloResultado").textContent = "Produto identificado";
+  el("btnSalvarRegistro").textContent = "💾 Salvar registro";
+
   el("resultadoCard").style.display = "block";
   el("avisoNaoEncontrado").style.display = registro ? "none" : "block";
 
@@ -341,7 +351,33 @@ function mostrarResultado(codigo, registro) {
   el("campoLote").focus();
 }
 
+function editarRegistro(indice) {
+  const r = historico[indice];
+  if (!r) return;
+
+  indiceEmEdicao = indice;
+  el("tituloResultado").textContent = "Editar item do balanço";
+  el("btnSalvarRegistro").textContent = "💾 Salvar alteração";
+
+  el("resultadoCard").style.display = "block";
+  el("avisoNaoEncontrado").style.display = "none";
+
+  el("campoCodigo").value = r.codigo || "";
+  el("campoRegistro").value = r.registroMs || "";
+  el("campoDescricao").value = r.descricao || "";
+  el("campoApresentacao").value = r.apresentacao || "";
+  el("campoLaboratorio").value = "";
+
+  el("campoLote").value = r.lote || "";
+  el("campoValidade").value = r.validade || "";
+  el("campoQuantidade").value = r.quantidade || "";
+
+  el("resultadoCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  el("campoValidade").focus();
+}
+
 function limparResultado() {
+  indiceEmEdicao = null;
   el("resultadoCard").style.display = "none";
   el("codigoManual").value = "";
 }
@@ -361,7 +397,11 @@ async function salvarRegistro() {
   if (!dataBrValida(validade)) return toast("Validade inválida. Use o formato dd/mm/aaaa");
   if (!quantidade || Number(quantidade) <= 0) return toast("Informe uma quantidade válida");
 
+  const editando = indiceEmEdicao !== null;
+  const registroAnterior = editando ? historico[indiceEmEdicao] : null;
+
   const registro = {
+    id: registroAnterior?.id || gerarId(),
     codigo,
     registroMs,
     descricao,
@@ -369,15 +409,20 @@ async function salvarRegistro() {
     lote,
     validade,
     quantidade: Number(quantidade),
-    salvoEm: new Date().toISOString(),
+    salvoEm: registroAnterior?.salvoEm || new Date().toISOString(),
     sincronizado: !urlNuvem // sem URL configurada, não há o que sincronizar
   };
 
-  historico.unshift(registro);
+  if (editando) {
+    historico[indiceEmEdicao] = registro;
+  } else {
+    historico.unshift(registro);
+  }
+
   localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
   renderHistorico();
   limparResultado();
-  toast(urlNuvem ? "Registro salvo ✅ sincronizando com a planilha..." : "Registro salvo ✅");
+  toast(urlNuvem ? `${editando ? "Alteração salva" : "Registro salvo"} ✅ sincronizando com a planilha...` : `${editando ? "Alteração salva" : "Registro salvo"} ✅`);
 
   if (urlNuvem) {
     registro.sincronizado = await sincronizarComNuvem(registro);
@@ -428,12 +473,16 @@ function renderHistorico() {
       <td>${formatarDataBr(r.validade)}</td>
       <td>${r.quantidade}</td>
       <td>${statusNuvemLinha(r)}</td>
-      <td><button class="btn-remover" onclick="removerRegistro(${i})" aria-label="Remover">🗑️</button></td>
+      <td class="conf-tabela-acoes">
+        <button class="btn-remover" onclick="editarRegistro(${i})" aria-label="Editar">✏️</button>
+        <button class="btn-remover" onclick="removerRegistro(${i})" aria-label="Remover">🗑️</button>
+      </td>
     </tr>
   `).join("");
 }
 
 function removerRegistro(indice) {
+  limparResultado(); // evita deixar um formulário de edição aberto apontando pra um índice que vai mudar
   historico.splice(indice, 1);
   localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
   renderHistorico();
@@ -443,6 +492,7 @@ function limparHistorico() {
   if (!historico.length) return;
   if (!confirm("Remover todos os registros salvos?")) return;
 
+  limparResultado();
   historico = [];
   localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
   renderHistorico();

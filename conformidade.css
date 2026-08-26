@@ -145,6 +145,12 @@ input[type="file"]::file-selector-button {
   font-size: 14px;
 }
 
+.conf-tabela-acoes {
+  display: flex;
+  gap: 4px;
+  white-space: nowrap;
+}
+
 /* --- Busca manual --- */
 .conf-manual {
   margin-top: 16px;

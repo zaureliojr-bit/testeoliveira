@@ -75,7 +75,7 @@
 
   <!-- 📋 RESULTADO -->
   <section id="resultadoCard" class="conf-card" style="display:none;">
-    <h2>Produto identificado</h2>
+    <h2 id="tituloResultado">Produto identificado</h2>
 
     <div id="avisoNaoEncontrado" class="conf-aviso" style="display:none;">
       ⚠️ Código não encontrado na tabela CMED. Preencha os dados manualmente abaixo.
@@ -125,7 +125,7 @@
     </div>
 
     <div class="conf-acoes">
-      <button class="btn-conf" onclick="salvarRegistro()">💾 Salvar registro</button>
+      <button id="btnSalvarRegistro" class="btn-conf" onclick="salvarRegistro()">💾 Salvar registro</button>
       <button class="btn-conf btn-secundario" onclick="limparResultado()">✖️ Cancelar</button>
     </div>
   </section>
