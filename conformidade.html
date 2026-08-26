@@ -89,11 +89,11 @@
     <div class="conf-grid">
       <div class="conf-campo">
         <label for="campoLote">Lote *</label>
-        <input type="text" id="campoLote" placeholder="Ex: L2026A34">
+        <input type="text" id="campoLote" placeholder="Ex: L2026A34" oninput="uppercaseLote(this)">
       </div>
       <div class="conf-campo">
         <label for="campoValidade">Validade *</label>
-        <input type="date" id="campoValidade">
+        <input type="text" id="campoValidade" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" oninput="mascaraValidade(this)">
       </div>
       <div class="conf-campo">
         <label for="campoQuantidade">Quantidade *</label>

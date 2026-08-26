@@ -32,6 +32,32 @@ function apenasDigitos(s) {
   return (s || "").replace(/\D/g, "");
 }
 
+function uppercaseLote(input) {
+  const pos = input.selectionStart;
+  input.value = input.value.toUpperCase();
+  input.selectionStart = input.selectionEnd = pos;
+}
+
+function mascaraValidade(input) {
+  let v = apenasDigitos(input.value).slice(0, 8);
+  if (v.length > 4) v = v.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
+  else if (v.length > 2) v = v.replace(/(\d{2})(\d{1,2})/, "$1/$2");
+  input.value = v;
+}
+
+function dataBrValida(str) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(str || "");
+  if (!m) return false;
+
+  const dia = Number(m[1]);
+  const mes = Number(m[2]);
+  const ano = Number(m[3]);
+  if (mes < 1 || mes > 12) return false;
+
+  const data = new Date(ano, mes - 1, dia);
+  return data.getFullYear() === ano && data.getMonth() === mes - 1 && data.getDate() === dia;
+}
+
 /* =========================
 🚀 INIT
 ========================= */
@@ -219,6 +245,7 @@ function salvarRegistro() {
   if (!descricao) return toast("Informe ao menos a descrição do produto");
   if (!lote) return toast("Informe o lote");
   if (!validade) return toast("Informe a validade");
+  if (!dataBrValida(validade)) return toast("Validade inválida. Use o formato dd/mm/aaaa");
   if (!quantidade || Number(quantidade) <= 0) return toast("Informe uma quantidade válida");
 
   historico.unshift({
@@ -241,10 +268,12 @@ function salvarRegistro() {
 /* =========================
 🗂️ HISTÓRICO
 ========================= */
-function formatarDataBr(iso) {
-  if (!iso) return "";
-  const [ano, mes, dia] = iso.split("-");
-  return dia ? `${dia}/${mes}/${ano}` : iso;
+function formatarDataBr(data) {
+  if (!data) return "";
+  // Compatibilidade com registros antigos, salvos no formato ISO (aaaa-mm-dd)
+  // pelo antigo campo <input type="date">. Registros novos já vêm em dd/mm/aaaa.
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
+  return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : data;
 }
 
 function renderHistorico() {
