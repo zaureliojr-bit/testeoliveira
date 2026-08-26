@@ -630,32 +630,45 @@ function limparHistorico() {
 }
 
 /* =========================
-⬇️ EXPORTAR CSV
+⬇️ EXPORTAR CSV / TXT (colunas separadas por ;)
 ========================= */
 function csvEscape(valor) {
   const s = String(valor ?? "");
   return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-function exportarCSV() {
-  if (!historico.length) return toast("Nenhum registro para exportar");
-
+function montarTextoDelimitado() {
   const cabecalho = ["Código", "Registro MS", "Descrição", "Apresentação", "Lote", "Validade", "Quantidade", "Salvo em"];
   const linhas = historico.map(r => [
     r.codigo, r.registroMs, r.descricao, r.apresentacao, r.lote, formatarDataBr(r.validade), r.quantidade, r.salvoEm
   ].map(csvEscape).join(";"));
 
-  const csv = "﻿" + [cabecalho.join(";"), ...linhas].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  return "﻿" + [cabecalho.join(";"), ...linhas].join("\n");
+}
+
+function baixarArquivoTexto(conteudo, nomeArquivo, mime) {
+  const blob = new Blob([conteudo], { type: mime });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = `balanco_medicamentos_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = nomeArquivo;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function exportarCSV() {
+  if (!historico.length) return toast("Nenhum registro para exportar");
+  const nome = `balanco_medicamentos_${new Date().toISOString().slice(0, 10)}.csv`;
+  baixarArquivoTexto(montarTextoDelimitado(), nome, "text/csv;charset=utf-8;");
+}
+
+function exportarTXT() {
+  if (!historico.length) return toast("Nenhum registro para exportar");
+  const nome = `balanco_medicamentos_${new Date().toISOString().slice(0, 10)}.txt`;
+  baixarArquivoTexto(montarTextoDelimitado(), nome, "text/plain;charset=utf-8;");
 }
 
 /* =========================
