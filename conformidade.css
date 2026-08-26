@@ -193,7 +193,37 @@ input[readonly] { background: var(--bg); color: var(--text-muted); }
   border-radius: 999px;
 }
 
-.conf-historico-botoes { display: flex; gap: 8px; }
+.conf-historico-botoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* --- Sincronização com a nuvem --- */
+.conf-card-nuvem { padding: 14px 18px; }
+
+.conf-nuvem-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.conf-nuvem-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.conf-seta { color: var(--text-muted); transition: transform .15s; }
+
+.conf-nuvem-body {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.conf-badge-off { background: var(--bg); color: var(--text-muted); }
+.conf-badge-ok { background: #e6f9ee; color: #1a8f4c; }
+.conf-badge-erro { background: #fdeaea; color: var(--danger); }
 
 .conf-tabela-wrap { overflow-x: auto; }
 

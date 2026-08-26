@@ -29,6 +29,27 @@
 
 <main class="conf-container">
 
+  <!-- ☁️ SINCRONIZAÇÃO EM TEMPO REAL -->
+  <section class="conf-card conf-card-nuvem">
+    <div class="conf-nuvem-header" onclick="toggleConfigNuvem()">
+      <h2>☁️ Sincronização com planilha <span id="statusNuvem" class="conf-badge conf-badge-off">não configurada</span></h2>
+      <span id="setaConfigNuvem" class="conf-seta">▾</span>
+    </div>
+
+    <div id="configNuvemBody" class="conf-nuvem-body" style="display:none;">
+      <p class="conf-nota">
+        Cole aqui a URL do Google Apps Script (termina em <code>/exec</code>).
+        Cada item salvo no balanço é enviado automaticamente pra planilha,
+        pra uma segunda pessoa acompanhar ao vivo e copiar pro SNGPC.
+        Veja o passo a passo no arquivo <code>apps-script-balanco.gs</code> do projeto.
+      </p>
+      <div class="conf-manual-linha">
+        <input type="text" id="campoUrlNuvem" placeholder="https://script.google.com/macros/s/.../exec">
+        <button class="btn-conf btn-pequeno" onclick="salvarConfigNuvem()">💾 Salvar</button>
+      </div>
+    </div>
+  </section>
+
   <!-- 📷 SCANNER -->
   <section class="conf-card">
     <h2>Escanear código de barras</h2>
@@ -112,6 +133,7 @@
     <div class="conf-historico-header">
       <h2>Itens do balanço <span id="contadorHistorico" class="conf-badge">0</span></h2>
       <div class="conf-historico-botoes">
+        <button id="btnRessincronizar" class="btn-conf btn-pequeno btn-secundario" onclick="ressincronizarPendentes()" style="display:none;">🔄 Ressincronizar pendentes</button>
         <button class="btn-conf btn-pequeno" onclick="exportarXLSX()">📊 Exportar balanço (XLSX)</button>
         <button class="btn-conf btn-pequeno btn-secundario" onclick="exportarCSV()">⬇️ CSV</button>
         <button class="btn-conf btn-pequeno btn-secundario" onclick="limparHistorico()">🗑️ Limpar tudo</button>
@@ -128,6 +150,7 @@
             <th>Lote</th>
             <th>Validade</th>
             <th>Qtd.</th>
+            <th>Nuvem</th>
             <th></th>
           </tr>
         </thead>

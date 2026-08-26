@@ -3,12 +3,14 @@
 ========================= */
 const DADOS_URL = "dados_conformidade.json";
 const HISTORICO_KEY = "conformidadeHistorico";
+const URL_NUVEM_KEY = "conformidadeUrlNuvem";
 
 /* =========================
 🗄️ ESTADO
 ========================= */
 let baseConformidade = null; // { fonte, publicada, campos, produtos: { ean: [registro,produto,substancia,apresentacao,laboratorio,tarja] } }
 let historico = JSON.parse(localStorage.getItem(HISTORICO_KEY)) || [];
+let urlNuvem = localStorage.getItem(URL_NUVEM_KEY) || "";
 let leitorAtivo = null;
 let ultimoCodigoLido = "";
 let ultimoCodigoTimestamp = 0;
@@ -64,6 +66,7 @@ function dataBrValida(str) {
 document.addEventListener("DOMContentLoaded", () => {
   carregarBase();
   renderHistorico();
+  iniciarConfigNuvem();
 });
 
 async function carregarBase() {
@@ -79,6 +82,116 @@ async function carregarBase() {
     el("statusBase").textContent = "⚠️ falha ao carregar base";
     toast("Não foi possível carregar a base de conformidade");
   }
+}
+
+/* =========================
+☁️ SINCRONIZAÇÃO EM TEMPO REAL (Google Sheets)
+========================= */
+function iniciarConfigNuvem() {
+  el("campoUrlNuvem").value = urlNuvem;
+  atualizarStatusNuvem(urlNuvem ? "ok" : "off");
+  atualizarBotaoRessincronizar();
+}
+
+function toggleConfigNuvem() {
+  const body = el("configNuvemBody");
+  const aberto = body.style.display !== "none";
+  body.style.display = aberto ? "none" : "block";
+  el("setaConfigNuvem").textContent = aberto ? "▾" : "▴";
+}
+
+function atualizarStatusNuvem(estado) {
+  const badge = el("statusNuvem");
+  badge.classList.remove("conf-badge-off", "conf-badge-ok", "conf-badge-erro");
+
+  if (estado === "ok") {
+    badge.textContent = "conectada";
+    badge.classList.add("conf-badge-ok");
+  } else if (estado === "erro") {
+    badge.textContent = "erro ao conectar";
+    badge.classList.add("conf-badge-erro");
+  } else {
+    badge.textContent = "não configurada";
+    badge.classList.add("conf-badge-off");
+  }
+}
+
+async function salvarConfigNuvem() {
+  const valor = el("campoUrlNuvem").value.trim();
+
+  if (!valor) {
+    urlNuvem = "";
+    localStorage.setItem(URL_NUVEM_KEY, "");
+    atualizarStatusNuvem("off");
+    toast("Sincronização desativada");
+    return;
+  }
+
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(valor)) {
+    toast("Essa URL não parece um link do Apps Script (deve terminar em /exec)");
+    return;
+  }
+
+  toast("Testando conexão...");
+
+  try {
+    const res = await fetch(valor);
+    const data = await res.json();
+    if (!data.ok) throw new Error("resposta inesperada");
+
+    urlNuvem = valor;
+    localStorage.setItem(URL_NUVEM_KEY, urlNuvem);
+    atualizarStatusNuvem("ok");
+    toast("Planilha conectada ✅");
+  } catch (e) {
+    console.error("Erro ao testar URL da nuvem", e);
+    atualizarStatusNuvem("erro");
+    toast("Não consegui conectar nessa URL. Confira o passo a passo do apps-script-balanco.gs");
+  }
+}
+
+async function sincronizarComNuvem(registro) {
+  if (!urlNuvem) return false;
+
+  try {
+    const res = await fetch(urlNuvem, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // evita preflight CORS no Apps Script
+      body: JSON.stringify(registro)
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return !!data.ok;
+  } catch (e) {
+    console.error("Erro ao sincronizar com a planilha", e);
+    return false;
+  }
+}
+
+function atualizarBotaoRessincronizar() {
+  const pendentes = historico.filter(r => urlNuvem && !r.sincronizado).length;
+  const btn = el("btnRessincronizar");
+  btn.style.display = pendentes > 0 ? "inline-flex" : "none";
+  btn.textContent = `🔄 Ressincronizar pendentes (${pendentes})`;
+}
+
+async function ressincronizarPendentes() {
+  if (!urlNuvem) return toast("Configure a URL da planilha primeiro");
+
+  const pendentes = historico.filter(r => !r.sincronizado);
+  if (!pendentes.length) return;
+
+  toast(`Sincronizando ${pendentes.length} item(ns)...`);
+
+  for (const r of pendentes) {
+    r.sincronizado = await sincronizarComNuvem(r);
+  }
+
+  localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
+  renderHistorico();
+
+  const restam = historico.filter(r => !r.sincronizado).length;
+  toast(restam ? `${restam} item(ns) ainda não sincronizados` : "Tudo sincronizado ✅");
 }
 
 /* =========================
@@ -233,7 +346,7 @@ function limparResultado() {
   el("codigoManual").value = "";
 }
 
-function salvarRegistro() {
+async function salvarRegistro() {
   const codigo = el("campoCodigo").value.trim();
   const registroMs = el("campoRegistro").value.trim();
   const descricao = el("campoDescricao").value.trim();
@@ -248,7 +361,7 @@ function salvarRegistro() {
   if (!dataBrValida(validade)) return toast("Validade inválida. Use o formato dd/mm/aaaa");
   if (!quantidade || Number(quantidade) <= 0) return toast("Informe uma quantidade válida");
 
-  historico.unshift({
+  const registro = {
     codigo,
     registroMs,
     descricao,
@@ -256,13 +369,22 @@ function salvarRegistro() {
     lote,
     validade,
     quantidade: Number(quantidade),
-    salvoEm: new Date().toISOString()
-  });
+    salvoEm: new Date().toISOString(),
+    sincronizado: !urlNuvem // sem URL configurada, não há o que sincronizar
+  };
 
+  historico.unshift(registro);
   localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
   renderHistorico();
   limparResultado();
-  toast("Registro salvo ✅");
+  toast(urlNuvem ? "Registro salvo ✅ sincronizando com a planilha..." : "Registro salvo ✅");
+
+  if (urlNuvem) {
+    registro.sincronizado = await sincronizarComNuvem(registro);
+    localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
+    renderHistorico();
+    if (!registro.sincronizado) toast("⚠️ Salvo localmente, mas não sincronizou com a planilha");
+  }
 }
 
 /* =========================
@@ -276,11 +398,18 @@ function formatarDataBr(data) {
   return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : data;
 }
 
+function statusNuvemLinha(r) {
+  if (!urlNuvem) return `<span title="Sincronização não configurada">—</span>`;
+  if (r.sincronizado) return `<span title="Sincronizado com a planilha">☁️</span>`;
+  return `<span title="Ainda não sincronizado">⏳</span>`;
+}
+
 function renderHistorico() {
   const corpo = el("corpoHistorico");
   const vazio = el("historicoVazio");
 
   el("contadorHistorico").textContent = historico.length;
+  atualizarBotaoRessincronizar();
 
   if (!historico.length) {
     corpo.innerHTML = "";
@@ -298,6 +427,7 @@ function renderHistorico() {
       <td>${r.lote}</td>
       <td>${formatarDataBr(r.validade)}</td>
       <td>${r.quantidade}</td>
+      <td>${statusNuvemLinha(r)}</td>
       <td><button class="btn-remover" onclick="removerRegistro(${i})" aria-label="Remover">🗑️</button></td>
     </tr>
   `).join("");
