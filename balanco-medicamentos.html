@@ -160,23 +160,12 @@
     </div>
 
     <p class="conf-nota">
-      ℹ️ A planilha importada não traz lote, validade nem quantidade em estoque —
-      esses dados são específicos de cada compra/estoque e precisam ser conferidos na embalagem física.
+      ℹ️ A planilha importada não traz a quantidade em estoque — confira e informe abaixo.
     </p>
 
-    <div class="conf-grid">
-      <div class="conf-campo">
-        <label for="campoLote">Lote *</label>
-        <input type="text" id="campoLote" placeholder="Ex: L2026A34" oninput="uppercaseLote(this)">
-      </div>
-      <div class="conf-campo">
-        <label for="campoValidade">Validade *</label>
-        <input type="text" id="campoValidade" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" oninput="mascaraValidade(this)">
-      </div>
-      <div class="conf-campo">
-        <label for="campoQuantidade">Quantidade *</label>
-        <input type="number" id="campoQuantidade" min="1" step="1" placeholder="Ex: 10">
-      </div>
+    <div class="conf-campo">
+      <label for="campoQuantidade">Quantidade *</label>
+      <input type="number" id="campoQuantidade" min="1" step="1" placeholder="Ex: 10">
     </div>
 
     <div class="conf-acoes">
@@ -205,8 +194,6 @@
             <th>Registro MS</th>
             <th>Descrição</th>
             <th>Apresentação</th>
-            <th>Lote</th>
-            <th>Validade</th>
             <th>Qtd.</th>
             <th>Nuvem</th>
             <th></th>

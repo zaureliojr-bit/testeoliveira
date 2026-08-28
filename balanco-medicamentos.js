@@ -71,32 +71,6 @@ function normalizarTexto(s) {
     .trim();
 }
 
-function uppercaseLote(input) {
-  const pos = input.selectionStart;
-  input.value = input.value.toUpperCase();
-  input.selectionStart = input.selectionEnd = pos;
-}
-
-function mascaraValidade(input) {
-  let v = apenasDigitos(input.value).slice(0, 8);
-  if (v.length > 4) v = v.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
-  else if (v.length > 2) v = v.replace(/(\d{2})(\d{1,2})/, "$1/$2");
-  input.value = v;
-}
-
-function dataBrValida(str) {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(str || "");
-  if (!m) return false;
-
-  const dia = Number(m[1]);
-  const mes = Number(m[2]);
-  const ano = Number(m[3]);
-  if (mes < 1 || mes > 12) return false;
-
-  const data = new Date(ano, mes - 1, dia);
-  return data.getFullYear() === ano && data.getMonth() === mes - 1 && data.getDate() === dia;
-}
-
 /* =========================
 🚀 INIT
 ========================= */
@@ -583,12 +557,10 @@ function mostrarResultado(codigo, registro) {
   el("campoApresentacao").value = registro ? registro.apresentacao : "";
   el("campoLaboratorio").value = registro ? registro.laboratorio : "";
 
-  el("campoLote").value = "";
-  el("campoValidade").value = "";
   el("campoQuantidade").value = registro && registro.quantidadeSugerida ? registro.quantidadeSugerida : "";
 
   el("resultadoCard").scrollIntoView({ behavior: "smooth", block: "start" });
-  el("campoLote").focus();
+  el("campoQuantidade").focus();
 }
 
 function editarRegistro(indice) {
@@ -608,12 +580,10 @@ function editarRegistro(indice) {
   el("campoApresentacao").value = r.apresentacao || "";
   el("campoLaboratorio").value = "";
 
-  el("campoLote").value = r.lote || "";
-  el("campoValidade").value = r.validade || "";
   el("campoQuantidade").value = r.quantidade || "";
 
   el("resultadoCard").scrollIntoView({ behavior: "smooth", block: "start" });
-  el("campoValidade").focus();
+  el("campoQuantidade").focus();
 }
 
 function limparResultado() {
@@ -627,14 +597,9 @@ async function salvarRegistro() {
   const registroMs = el("campoRegistro").value.trim();
   const descricao = el("campoDescricao").value.trim();
   const apresentacao = el("campoApresentacao").value.trim();
-  const lote = el("campoLote").value.trim();
-  const validade = el("campoValidade").value;
   const quantidade = el("campoQuantidade").value;
 
   if (!descricao) return toast("Informe ao menos a descrição do produto");
-  if (!lote) return toast("Informe o lote");
-  if (!validade) return toast("Informe a validade");
-  if (!dataBrValida(validade)) return toast("Validade inválida. Use o formato dd/mm/aaaa");
   if (!quantidade || Number(quantidade) <= 0) return toast("Informe uma quantidade válida");
 
   const editando = indiceEmEdicao !== null;
@@ -646,8 +611,6 @@ async function salvarRegistro() {
     registroMs,
     descricao,
     apresentacao,
-    lote,
-    validade,
     quantidade: Number(quantidade),
     salvoEm: registroAnterior?.salvoEm || new Date().toISOString(),
     sincronizado: !urlNuvem // sem URL configurada, não há o que sincronizar
@@ -675,14 +638,6 @@ async function salvarRegistro() {
 /* =========================
 🗂️ HISTÓRICO
 ========================= */
-function formatarDataBr(data) {
-  if (!data) return "";
-  // Compatibilidade com registros antigos, salvos no formato ISO (aaaa-mm-dd)
-  // pelo antigo campo <input type="date">. Registros novos já vêm em dd/mm/aaaa.
-  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
-  return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : data;
-}
-
 function statusNuvemLinha(r) {
   if (!urlNuvem) return `<span title="Sincronização não configurada">—</span>`;
   if (r.sincronizado) return `<span title="Sincronizado com a planilha">☁️</span>`;
@@ -709,8 +664,6 @@ function renderHistorico() {
       <td>${r.registroMs || "-"}</td>
       <td>${r.descricao}</td>
       <td>${r.apresentacao || "-"}</td>
-      <td>${r.lote}</td>
-      <td>${formatarDataBr(r.validade)}</td>
       <td>${r.quantidade}</td>
       <td>${statusNuvemLinha(r)}</td>
       <td class="conf-tabela-acoes">
@@ -747,9 +700,9 @@ function csvEscape(valor) {
 }
 
 function montarTextoDelimitado() {
-  const cabecalho = ["Código", "Registro MS", "Descrição", "Apresentação", "Lote", "Validade", "Quantidade", "Salvo em"];
+  const cabecalho = ["Código", "Registro MS", "Descrição", "Apresentação", "Quantidade", "Salvo em"];
   const linhas = historico.map(r => [
-    r.codigo, r.registroMs, r.descricao, r.apresentacao, r.lote, formatarDataBr(r.validade), r.quantidade, r.salvoEm
+    r.codigo, r.registroMs, r.descricao, r.apresentacao, r.quantidade, r.salvoEm
   ].map(csvEscape).join(";"));
 
   return "﻿" + [cabecalho.join(";"), ...linhas].join("\n");
@@ -796,7 +749,7 @@ function exportarXLSX() {
   const totalItens = historico.length;
   const totalUnidades = historico.reduce((soma, r) => soma + (Number(r.quantidade) || 0), 0);
 
-  const cabecalhoColunas = ["Registro MS", "Descrição", "Apresentação", "Lote", "Validade", "Quantidade", "Código de barras"];
+  const cabecalhoColunas = ["Registro MS", "Descrição", "Apresentação", "Quantidade", "Código de barras"];
 
   // Ordena por descrição para facilitar a conferência física no balanço
   const linhasOrdenadas = [...historico].sort((a, b) => a.descricao.localeCompare(b.descricao, "pt-BR"));
@@ -805,8 +758,6 @@ function exportarXLSX() {
     r.registroMs || "-",
     r.descricao,
     r.apresentacao || "-",
-    r.lote,
-    formatarDataBr(r.validade),
     r.quantidade,
     r.codigo || "-"
   ]);
@@ -819,7 +770,7 @@ function exportarXLSX() {
     cabecalhoColunas,
     ...linhasDados,
     [],
-    ["", "", "", "", "TOTAL", totalUnidades, ""]
+    ["", "", "TOTAL", totalUnidades, ""]
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
@@ -828,16 +779,14 @@ function exportarXLSX() {
     { wch: 16 }, // Registro MS
     { wch: 34 }, // Descrição
     { wch: 40 }, // Apresentação
-    { wch: 14 }, // Lote
-    { wch: 12 }, // Validade
     { wch: 12 }, // Quantidade
     { wch: 16 }  // Código de barras
   ];
 
   ws["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } }
   ];
 
   const wb = XLSX.utils.book_new();
