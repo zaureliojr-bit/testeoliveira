@@ -151,6 +151,18 @@ input[type="file"]::file-selector-button {
   white-space: nowrap;
 }
 
+.conf-codigo-copiar {
+  cursor: pointer;
+  font-family: monospace;
+  color: var(--primary-dark);
+  text-decoration: underline dotted;
+}
+
+.conf-codigo-copiar:hover,
+.conf-codigo-copiar:active {
+  color: var(--primary);
+}
+
 /* --- Busca manual --- */
 .conf-manual {
   margin-top: 16px;

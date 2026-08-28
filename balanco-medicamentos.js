@@ -58,6 +58,31 @@ function apenasDigitos(s) {
   return (s || "").replace(/\D/g, "");
 }
 
+async function copiarCodigo(codigo) {
+  if (!codigo) return;
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(codigo);
+    } else {
+      // Fallback pra contexto sem HTTPS/API de clipboard (ex: navegadores mais antigos)
+      const campo = document.createElement("textarea");
+      campo.value = codigo;
+      campo.style.position = "fixed";
+      campo.style.opacity = "0";
+      document.body.appendChild(campo);
+      campo.focus();
+      campo.select();
+      document.execCommand("copy");
+      document.body.removeChild(campo);
+    }
+    toast(`Código ${codigo} copiado ✅`);
+  } catch (e) {
+    console.error("Erro ao copiar código", e);
+    toast("Não consegui copiar. Selecione o código manualmente.");
+  }
+}
+
 function gerarId() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
   return `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -661,6 +686,7 @@ function renderHistorico() {
 
   corpo.innerHTML = historico.map((r, i) => `
     <tr>
+      <td class="conf-codigo-copiar" onclick="copiarCodigo('${r.codigo}')" title="Toque para copiar">${r.codigo || "-"} 📋</td>
       <td>${r.registroMs || "-"}</td>
       <td>${r.descricao}</td>
       <td>${r.apresentacao || "-"}</td>
