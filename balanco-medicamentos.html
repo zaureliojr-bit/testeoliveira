@@ -38,10 +38,13 @@
       Importe uma planilha própria (.xlsx, .xls ou .csv) com os produtos — por exemplo, uma
       exportação do seu sistema de estoque. O app tenta detectar sozinho as colunas de
       código de barras, descrição etc.; se não conseguir, você escolhe manualmente.
+      Também reconhece direto o arquivo de contagem em .txt (largura fixa, sem
+      separador) exportado por alguns sistemas — nesse caso a quantidade contada
+      já vem sugerida ao escanear, mas ainda dá pra conferir e ajustar antes de salvar.
     </p>
 
     <div class="conf-manual-linha">
-      <input type="file" id="arquivoBase" accept=".xlsx,.xls,.csv" onchange="importarPlanilha(this.files[0])">
+      <input type="file" id="arquivoBase" accept=".xlsx,.xls,.csv,.txt" onchange="importarPlanilha(this.files[0])">
     </div>
 
     <p id="statusImportacao" class="conf-import-status"></p>

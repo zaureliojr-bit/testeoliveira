@@ -108,18 +108,77 @@ document.addEventListener("DOMContentLoaded", () => {
 /* =========================
 📂 IMPORTAR PLANILHA
 ========================= */
+
+// Layout de largura fixa (sem separador) que alguns sistemas de estoque
+// exportam pra contagem de inventário: duas vezes [código de barras 13 +
+// código auxiliar 13], descrição (60) e quantidade contada (10) = 122
+// colunas. Ex: "7898336434575000000000000...TIPOIA SIMPLES...  0000000010"
+const LARGURA_MIN_CONTAGEM_FIXA = 122;
+
+function pareceLayoutContagemFixa(linha) {
+  return linha.length >= LARGURA_MIN_CONTAGEM_FIXA
+    && /^\d{13}$/.test(linha.slice(0, 13))
+    && /^\d{13}$/.test(linha.slice(13, 26))
+    && /^\d{10}$/.test(linha.slice(112, 122));
+}
+
+function importarTxtContagemFixa(texto, nomeArquivo) {
+  const linhas = texto.split(/\r?\n/).filter(l => l.trim().length);
+  if (!linhas.length || !pareceLayoutContagemFixa(linhas[0])) return false;
+
+  const produtos = {};
+  let totalItens = 0;
+
+  linhas.forEach(linha => {
+    if (!pareceLayoutContagemFixa(linha)) return;
+
+    const codigo1 = linha.slice(0, 13);
+    const codigo2 = linha.slice(13, 26);
+    const descricao = linha.slice(52, 112).trim();
+    const quantidadeSugerida = parseInt(linha.slice(112, 122), 10) || 0;
+    if (!descricao) return;
+
+    const registro = { registro: "", descricao, apresentacao: "", laboratorio: "", quantidadeSugerida };
+    [codigo1, codigo2].forEach(codigo => {
+      if (codigo && !/^0+$/.test(codigo)) produtos[codigo] = registro;
+    });
+    totalItens++;
+  });
+
+  if (!totalItens) return false;
+
+  baseImportada = produtos;
+  const totalCodigos = Object.keys(produtos).length;
+  el("statusBase").textContent = `${totalItens.toLocaleString("pt-BR")} produtos importados`;
+  el("statusImportacao").textContent =
+    `✅ "${nomeArquivo}": ${totalItens.toLocaleString("pt-BR")} produtos (${totalCodigos.toLocaleString("pt-BR")} códigos de barras) reconhecidos do arquivo de contagem.`;
+  toast(`Planilha importada: ${totalItens.toLocaleString("pt-BR")} produtos ✅`);
+  return true;
+}
+
 async function importarPlanilha(arquivo) {
   if (!arquivo) return;
-
-  if (typeof XLSX === "undefined") {
-    toast("Biblioteca de planilhas não carregou. Verifique sua conexão.");
-    return;
-  }
 
   el("statusImportacao").textContent = "Lendo planilha...";
 
   try {
     const buffer = await arquivo.arrayBuffer();
+
+    if (/\.txt$/i.test(arquivo.name)) {
+      // Arquivos de sistemas de estoque legados geralmente vêm em
+      // ISO-8859-1/Windows-1252, não UTF-8 — decodificar como UTF-8
+      // corromperia acentos (Á, Ç, ...).
+      const texto = new TextDecoder("iso-8859-1").decode(buffer);
+      if (importarTxtContagemFixa(texto, arquivo.name)) return;
+      // Não bateu com o layout fixo conhecido: cai pro fluxo genérico
+      // abaixo, que tenta ler como texto delimitado (csv/tsv).
+    }
+
+    if (typeof XLSX === "undefined") {
+      toast("Biblioteca de planilhas não carregou. Verifique sua conexão.");
+      return;
+    }
+
     const wb = XLSX.read(buffer, { type: "array" });
     const ws = wb.Sheets[wb.SheetNames[0]];
     const linhas = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" });
@@ -130,7 +189,7 @@ async function importarPlanilha(arquivo) {
   } catch (e) {
     console.error("Erro ao importar planilha", e);
     el("statusImportacao").textContent = "";
-    toast("Não consegui ler essa planilha. Verifique se é um .xlsx, .xls ou .csv válido.");
+    toast("Não consegui ler essa planilha. Verifique se é um .xlsx, .xls, .csv ou .txt válido.");
   }
 }
 
@@ -526,7 +585,7 @@ function mostrarResultado(codigo, registro) {
 
   el("campoLote").value = "";
   el("campoValidade").value = "";
-  el("campoQuantidade").value = "";
+  el("campoQuantidade").value = registro && registro.quantidadeSugerida ? registro.quantidadeSugerida : "";
 
   el("resultadoCard").scrollIntoView({ behavior: "smooth", block: "start" });
   el("campoLote").focus();
