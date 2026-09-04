@@ -67,9 +67,9 @@
     </div>
 
     <div class="conf-manual">
-      <label for="codigoManual">Ou digite o código de barras</label>
+      <label for="codigoManual">Ou digite o código de barras ou o Registro MS</label>
       <div class="conf-manual-linha">
-        <input type="text" id="codigoManual" inputmode="numeric" placeholder="Ex: 7891106000956"
+        <input type="text" id="codigoManual" inputmode="numeric" placeholder="Ex: 7891106000956 ou Registro MS"
           onkeydown="if(event.key==='Enter'){ event.preventDefault(); buscarPorCodigo(codigoManual.value); }">
         <button class="btn-conf" onclick="buscarPorCodigo(codigoManual.value)">🔍 Buscar</button>
       </div>

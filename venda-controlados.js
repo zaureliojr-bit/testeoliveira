@@ -112,6 +112,14 @@ async function carregarBase() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     baseConformidade = await res.json();
 
+    // Índice reverso pra permitir buscar também pelo Registro MS, não só pelo código de barras
+    baseConformidade.produtosPorRegistro = {};
+    for (const chave in baseConformidade.produtos) {
+      const rec = baseConformidade.produtos[chave];
+      const registroDigitos = apenasDigitos(rec[0]);
+      if (registroDigitos) baseConformidade.produtosPorRegistro[registroDigitos] = rec;
+    }
+
     const total = Object.keys(baseConformidade.produtos || {}).length;
     el("statusBase").textContent = `${total.toLocaleString("pt-BR")} produtos · ${baseConformidade.publicada || ""}`;
   } catch (e) {
@@ -339,6 +347,15 @@ function buscarProdutoPorEan(codigo) {
   return null;
 }
 
+function buscarProdutoPorRegistro(codigo) {
+  if (!baseConformidade || !baseConformidade.produtosPorRegistro) return null;
+
+  const digitos = apenasDigitos(codigo);
+  if (!digitos) return null;
+
+  return baseConformidade.produtosPorRegistro[digitos] || null;
+}
+
 function buscarPorCodigo(codigoBruto) {
   const codigo = apenasDigitos(codigoBruto);
   if (!codigo) {
@@ -351,7 +368,7 @@ function buscarPorCodigo(codigoBruto) {
     return;
   }
 
-  const registro = buscarProdutoPorEan(codigo);
+  const registro = buscarProdutoPorEan(codigo) || buscarProdutoPorRegistro(codigo);
   mostrarResultado(codigo, registro);
 }
 
