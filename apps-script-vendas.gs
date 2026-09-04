@@ -33,7 +33,7 @@
  * 7. Copie a URL que aparece (termina em "/exec"). É essa URL que fica
  *    guardada como padrão dentro do venda-controlados.js (constante
  *    URL_NUVEM_PADRAO) — só precisa colar manualmente ali se um dia
- *    trocar de planilha.
+ *    trocar de planilha (ex: se a planilha atual for apagada de novo).
  *
  * 8. Deixe essa planilha aberta no PC (ou no Google Sheets do celular/
  *    tablet de quem for copiar pro SNGPC) — as linhas vão aparecer e se
@@ -42,14 +42,14 @@
  * Sempre que o código deste arquivo for alterado, é preciso fazer uma
  * nova implantação (Implantar → Gerenciar implantações → editar → Nova
  * versão) para as mudanças valerem na URL já publicada. Colunas novas
- * (como "Vendedor") são adicionadas sozinhas ao cabeçalho na primeira
- * chamada após a nova implantação, sem mexer nas linhas já existentes.
+ * são adicionadas sozinhas ao cabeçalho na primeira chamada após a nova
+ * implantação, sem mexer nas linhas já existentes.
  */
 
 var CABECALHO_ = [
   "Data/Hora", "Registro MS", "Descrição", "Apresentação",
   "Lote", "Validade", "Quantidade", "Código de barras",
-  "ID", "Atualizado em", "Vendedor"
+  "ID", "Atualizado em", "Vendedor", "Cliente", "RG", "Endereço"
 ];
 
 function doPost(e) {
@@ -67,19 +67,26 @@ function doPost(e) {
       dados.codigo || ""
     ];
 
+    var camposFinais = [
+      dados.vendedor || "",
+      dados.clienteNome || "",
+      dados.clienteRg || "",
+      dados.clienteEndereco || ""
+    ];
+
     var linha = dados.id ? encontrarLinhaPorId_(aba, dados.id) : 0;
 
     if (linha) {
       // Já existe uma linha com esse ID (venda editada depois de registrada):
       // sobrescreve os dados nela em vez de duplicar.
-      aba.getRange(linha, 2, 1, 7).setValues([camposMeio]); // B..H
-      aba.getRange(linha, 10).setValue(new Date());          // J = Atualizado em
-      aba.getRange(linha, 11).setValue(dados.vendedor || ""); // K = Vendedor
+      aba.getRange(linha, 2, 1, 7).setValues([camposMeio]);   // B..H
+      aba.getRange(linha, 10).setValue(new Date());            // J = Atualizado em
+      aba.getRange(linha, 11, 1, 4).setValues([camposFinais]); // K..N = Vendedor/Cliente/RG/Endereço
     } else {
       // Venda nova (ou o ID não foi encontrado, ex: linha apagada manualmente
       // na planilha) — adiciona como linha nova.
       aba.appendRow(
-        [new Date()].concat(camposMeio, [dados.id || "", "", dados.vendedor || ""])
+        [new Date()].concat(camposMeio, [dados.id || "", ""], camposFinais)
       );
     }
 
@@ -106,9 +113,9 @@ function abaVenda_() {
     return aba;
   }
 
-  // Completa no cabeçalho as colunas que ainda não existem (ex: "Vendedor",
-  // se a planilha foi criada com uma versão anterior deste script) sem
-  // mexer nas colunas nem nas linhas já existentes.
+  // Completa no cabeçalho as colunas que ainda não existem (ex: se a
+  // planilha foi criada com uma versão anterior deste script) sem mexer
+  // nas colunas nem nas linhas já existentes.
   var cabecalhoAtual = aba.getRange(1, 1, 1, CABECALHO_.length).getValues()[0];
   for (var i = 0; i < CABECALHO_.length; i++) {
     if (cabecalhoAtual[i] !== CABECALHO_[i]) {
