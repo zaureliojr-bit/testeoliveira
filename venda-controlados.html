@@ -43,11 +43,10 @@
 
     <div id="configNuvemBody" class="conf-nuvem-body" style="display:none;">
       <p class="conf-nota">
-        Cole aqui a URL do Google Apps Script (termina em <code>/exec</code>).
-        Cada venda registrada é enviada automaticamente pra planilha,
-        pra uma segunda pessoa acompanhar ao vivo e copiar pro SNGPC.
-        Use uma planilha própria pra vendas (separada da planilha do balanço físico) —
-        veja o passo a passo no arquivo <code>apps-script-balanco.gs</code> do projeto.
+        A URL da planilha de vendas já vem configurada por padrão — não precisa preencher
+        isso toda vez que abrir o app num aparelho novo. Só mexa aqui se for trocar de
+        planilha; a URL termina em <code>/exec</code>. Veja o passo a passo no arquivo
+        <code>apps-script-vendas.gs</code> do projeto.
       </p>
       <div class="conf-manual-linha">
         <input type="text" id="campoUrlNuvem" placeholder="https://script.google.com/macros/s/.../exec">
@@ -120,11 +119,15 @@
       </div>
       <div class="conf-campo">
         <label for="campoValidade">Validade *</label>
-        <input type="text" id="campoValidade" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" oninput="mascaraValidade(this)">
+        <input type="text" id="campoValidade" inputmode="numeric" maxlength="8" placeholder="dd/mm/aa" oninput="mascaraValidade(this)">
       </div>
       <div class="conf-campo">
         <label for="campoQuantidade">Quantidade *</label>
         <input type="number" id="campoQuantidade" min="1" step="1" placeholder="Ex: 1">
+      </div>
+      <div class="conf-campo">
+        <label for="campoVendedor">Vendedor *</label>
+        <input type="text" id="campoVendedor" placeholder="Nome do balconista">
       </div>
     </div>
 
@@ -158,6 +161,7 @@
             <th>Lote</th>
             <th>Validade</th>
             <th>Qtd.</th>
+            <th>Vendedor</th>
             <th>Nuvem</th>
             <th></th>
           </tr>

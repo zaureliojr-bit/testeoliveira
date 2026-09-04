@@ -4,13 +4,19 @@
 const DADOS_URL = "dados_conformidade.json";
 const HISTORICO_KEY = "vendaControladosHistorico";
 const URL_NUVEM_KEY = "vendaControladosUrlNuvem";
+const VENDEDOR_KEY = "vendaControladosUltimoVendedor";
+
+// Planilha de vendas já configurada por padrão, pra não precisar colar a URL
+// toda vez que o app for aberto num aparelho novo. Ainda dá pra trocar pela
+// seção "☁️ Sincronização" se um dia precisar apontar pra outra planilha.
+const URL_NUVEM_PADRAO = "https://script.google.com/macros/s/AKfycbwMGL6osXU1VIg-GXm97fBiMEY-hJEDjpkkrD9AnRl2d4K6nFcNYNX2UuzTnHukFNbd/exec";
 
 /* =========================
 🗄️ ESTADO
 ========================= */
 let baseConformidade = null; // { fonte, publicada, campos, produtos: { ean: [registro,produto,substancia,apresentacao,laboratorio,tarja] } }
 let historico = JSON.parse(localStorage.getItem(HISTORICO_KEY)) || [];
-let urlNuvem = localStorage.getItem(URL_NUVEM_KEY) || "";
+let urlNuvem = localStorage.getItem(URL_NUVEM_KEY) || URL_NUVEM_PADRAO;
 let leitorAtivo = null;
 let ultimoCodigoLido = "";
 let ultimoCodigoTimestamp = 0;
@@ -72,19 +78,19 @@ function uppercaseLote(input) {
 }
 
 function mascaraValidade(input) {
-  let v = apenasDigitos(input.value).slice(0, 8);
-  if (v.length > 4) v = v.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
+  let v = apenasDigitos(input.value).slice(0, 6);
+  if (v.length > 4) v = v.replace(/(\d{2})(\d{2})(\d{1,2})/, "$1/$2/$3");
   else if (v.length > 2) v = v.replace(/(\d{2})(\d{1,2})/, "$1/$2");
   input.value = v;
 }
 
 function dataBrValida(str) {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(str || "");
+  const m = /^(\d{2})\/(\d{2})\/(\d{2})$/.exec(str || "");
   if (!m) return false;
 
   const dia = Number(m[1]);
   const mes = Number(m[2]);
-  const ano = Number(m[3]);
+  const ano = 2000 + Number(m[3]); // "aa" -> 20aa
   if (mes < 1 || mes > 12) return false;
 
   const data = new Date(ano, mes - 1, dia);
@@ -371,6 +377,7 @@ function mostrarResultado(codigo, registro) {
   el("campoLote").value = "";
   el("campoValidade").value = "";
   el("campoQuantidade").value = "";
+  el("campoVendedor").value = localStorage.getItem(VENDEDOR_KEY) || "";
 
   el("resultadoCard").scrollIntoView({ behavior: "smooth", block: "start" });
   el("campoLote").focus();
@@ -396,6 +403,7 @@ function editarRegistro(indice) {
   el("campoLote").value = r.lote || "";
   el("campoValidade").value = r.validade || "";
   el("campoQuantidade").value = r.quantidade || "";
+  el("campoVendedor").value = r.vendedor || "";
 
   el("resultadoCard").scrollIntoView({ behavior: "smooth", block: "start" });
   el("campoValidade").focus();
@@ -415,12 +423,14 @@ async function salvarRegistro() {
   const lote = el("campoLote").value.trim();
   const validade = el("campoValidade").value;
   const quantidade = el("campoQuantidade").value;
+  const vendedor = el("campoVendedor").value.trim();
 
   if (!descricao) return toast("Informe ao menos a descrição do produto");
   if (!lote) return toast("Informe o lote");
   if (!validade) return toast("Informe a validade");
-  if (!dataBrValida(validade)) return toast("Validade inválida. Use o formato dd/mm/aaaa");
+  if (!dataBrValida(validade)) return toast("Validade inválida. Use o formato dd/mm/aa");
   if (!quantidade || Number(quantidade) <= 0) return toast("Informe uma quantidade válida");
+  if (!vendedor) return toast("Informe o vendedor");
 
   const editando = indiceEmEdicao !== null;
   const registroAnterior = editando ? historico[indiceEmEdicao] : null;
@@ -434,6 +444,7 @@ async function salvarRegistro() {
     lote,
     validade,
     quantidade: Number(quantidade),
+    vendedor,
     salvoEm: registroAnterior?.salvoEm || new Date().toISOString(),
     sincronizado: !urlNuvem // sem URL configurada, não há o que sincronizar
   };
@@ -444,6 +455,7 @@ async function salvarRegistro() {
     historico.unshift(registro);
   }
 
+  localStorage.setItem(VENDEDOR_KEY, vendedor);
   localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
   renderHistorico();
   limparResultado();
@@ -463,7 +475,7 @@ async function salvarRegistro() {
 function formatarDataBr(data) {
   if (!data) return "";
   // Compatibilidade com registros antigos, salvos no formato ISO (aaaa-mm-dd)
-  // pelo antigo campo <input type="date">. Registros novos já vêm em dd/mm/aaaa.
+  // pelo antigo campo <input type="date">. Registros novos já vêm em dd/mm/aa.
   const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
   return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : data;
 }
@@ -498,6 +510,7 @@ function renderHistorico() {
       <td>${r.lote}</td>
       <td>${formatarDataBr(r.validade)}</td>
       <td>${r.quantidade}</td>
+      <td>${r.vendedor || "-"}</td>
       <td>${statusNuvemLinha(r)}</td>
       <td class="conf-tabela-acoes">
         <button class="btn-remover" onclick="editarRegistro(${i})" aria-label="Editar">✏️</button>
@@ -533,9 +546,9 @@ function csvEscape(valor) {
 }
 
 function montarTextoDelimitado() {
-  const cabecalho = ["Código", "Registro MS", "Descrição", "Apresentação", "Lote", "Validade", "Quantidade", "Salvo em"];
+  const cabecalho = ["Código", "Registro MS", "Descrição", "Apresentação", "Lote", "Validade", "Quantidade", "Vendedor", "Salvo em"];
   const linhas = historico.map(r => [
-    r.codigo, r.registroMs, r.descricao, r.apresentacao, r.lote, formatarDataBr(r.validade), r.quantidade, r.salvoEm
+    r.codigo, r.registroMs, r.descricao, r.apresentacao, r.lote, formatarDataBr(r.validade), r.quantidade, r.vendedor, r.salvoEm
   ].map(csvEscape).join(";"));
 
   return "﻿" + [cabecalho.join(";"), ...linhas].join("\n");
@@ -582,7 +595,7 @@ function exportarXLSX() {
   const totalItens = historico.length;
   const totalUnidades = historico.reduce((soma, r) => soma + (Number(r.quantidade) || 0), 0);
 
-  const cabecalhoColunas = ["Registro MS", "Descrição", "Apresentação", "Lote", "Validade", "Quantidade", "Código de barras"];
+  const cabecalhoColunas = ["Registro MS", "Descrição", "Apresentação", "Lote", "Validade", "Quantidade", "Código de barras", "Vendedor"];
 
   // Ordena por descrição para facilitar a conferência
   const linhasOrdenadas = [...historico].sort((a, b) => a.descricao.localeCompare(b.descricao, "pt-BR"));
@@ -594,7 +607,8 @@ function exportarXLSX() {
     r.lote,
     formatarDataBr(r.validade),
     r.quantidade,
-    r.codigo || "-"
+    r.codigo || "-",
+    r.vendedor || "-"
   ]);
 
   const aoa = [
@@ -605,7 +619,7 @@ function exportarXLSX() {
     cabecalhoColunas,
     ...linhasDados,
     [],
-    ["", "", "", "", "TOTAL", totalUnidades, ""]
+    ["", "", "", "", "TOTAL", totalUnidades, "", ""]
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
@@ -617,13 +631,14 @@ function exportarXLSX() {
     { wch: 14 }, // Lote
     { wch: 12 }, // Validade
     { wch: 12 }, // Quantidade
-    { wch: 16 }  // Código de barras
+    { wch: 16 }, // Código de barras
+    { wch: 18 }  // Vendedor
   ];
 
   ws["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }
   ];
 
   const wb = XLSX.utils.book_new();
