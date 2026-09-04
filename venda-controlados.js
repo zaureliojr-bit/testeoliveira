@@ -440,9 +440,6 @@ async function salvarRegistro() {
   if (!dataBrValida(validade)) return toast("Validade inválida. Use o formato dd/mm/aa");
   if (!quantidade || Number(quantidade) <= 0) return toast("Informe uma quantidade válida");
   if (!vendedor) return toast("Informe o vendedor");
-  if (!clienteNome) return toast("Informe o nome do cliente");
-  if (!clienteRg) return toast("Informe o RG do cliente");
-  if (!clienteEndereco) return toast("Informe o endereço do cliente");
 
   const editando = indiceEmEdicao !== null;
   const registroAnterior = editando ? historico[indiceEmEdicao] : null;
