@@ -71,7 +71,7 @@ function gerarId() {
   return `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function uppercaseLote(input) {
+function uppercaseInput(input) {
   const pos = input.selectionStart;
   input.value = input.value.toUpperCase();
   input.selectionStart = input.selectionEnd = pos;
@@ -446,7 +446,7 @@ async function salvarRegistro() {
   const lote = el("campoLote").value.trim();
   const validade = el("campoValidade").value;
   const quantidade = el("campoQuantidade").value;
-  const vendedor = el("campoVendedor").value.trim();
+  const vendedor = el("campoVendedor").value.trim().toUpperCase();
   const clienteNome = el("campoClienteNome").value.trim();
   const clienteRg = el("campoClienteRg").value.trim();
   const clienteEndereco = el("campoClienteEndereco").value.trim();
