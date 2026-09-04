@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Leitor de código de barras com consulta à tabela de conformidade CMED/ANVISA">
+  <meta name="description" content="Registro de venda de produtos controlados com consulta à tabela CMED/ANVISA">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Conformidade">
-  <title>Conformidade — Drogaria Mais Barato</title>
+  <meta name="apple-mobile-web-app-title" content="Registro de Venda">
+  <title>Registro de Venda — Drogaria Mais Barato</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
   <div class="header-left">
     <a href="index.html" class="voltar-loja" aria-label="Voltar para a loja">←</a>
     <div class="titulo">
-      <h1>📷 Conformidade</h1>
+      <h1>🧾 Registro de Venda</h1>
       <span id="statusBase" class="status-base">carregando base…</span>
     </div>
   </div>
@@ -30,8 +30,8 @@
 <main class="conf-container">
 
   <p class="conf-link-cruzado">
-    <a href="balanco-medicamentos.html">↔ Balanço de Medicamentos</a> ·
-    <a href="venda-controlados.html">🧾 Registro de Venda</a>
+    <a href="conformidade.html">↔ Balanço de Controlados</a> ·
+    <a href="balanco-medicamentos.html">💊 Balanço de Medicamentos</a>
   </p>
 
   <!-- ☁️ SINCRONIZAÇÃO EM TEMPO REAL -->
@@ -44,9 +44,10 @@
     <div id="configNuvemBody" class="conf-nuvem-body" style="display:none;">
       <p class="conf-nota">
         Cole aqui a URL do Google Apps Script (termina em <code>/exec</code>).
-        Cada item salvo no balanço é enviado automaticamente pra planilha,
+        Cada venda registrada é enviada automaticamente pra planilha,
         pra uma segunda pessoa acompanhar ao vivo e copiar pro SNGPC.
-        Veja o passo a passo no arquivo <code>apps-script-balanco.gs</code> do projeto.
+        Use uma planilha própria pra vendas (separada da planilha do balanço físico) —
+        veja o passo a passo no arquivo <code>apps-script-balanco.gs</code> do projeto.
       </p>
       <div class="conf-manual-linha">
         <input type="text" id="campoUrlNuvem" placeholder="https://script.google.com/macros/s/.../exec">
@@ -108,8 +109,8 @@
     </div>
 
     <p class="conf-nota">
-      ℹ️ A tabela CMED/ANVISA não informa lote, validade nem quantidade em estoque —
-      esses dados são específicos de cada compra/estoque e precisam ser conferidos na embalagem física.
+      ℹ️ A tabela CMED/ANVISA não informa lote, validade nem quantidade vendida —
+      esses dados são específicos de cada venda e precisam ser conferidos na embalagem física.
     </p>
 
     <div class="conf-grid">
@@ -123,12 +124,12 @@
       </div>
       <div class="conf-campo">
         <label for="campoQuantidade">Quantidade *</label>
-        <input type="number" id="campoQuantidade" min="1" step="1" placeholder="Ex: 10">
+        <input type="number" id="campoQuantidade" min="1" step="1" placeholder="Ex: 1">
       </div>
     </div>
 
     <div class="conf-acoes">
-      <button id="btnSalvarRegistro" class="btn-conf" onclick="salvarRegistro()">💾 Salvar registro</button>
+      <button id="btnSalvarRegistro" class="btn-conf" onclick="salvarRegistro()">💾 Registrar venda</button>
       <button class="btn-conf btn-secundario" onclick="limparResultado()">✖️ Cancelar</button>
     </div>
   </section>
@@ -136,10 +137,10 @@
   <!-- 🗂️ HISTÓRICO -->
   <section class="conf-card">
     <div class="conf-historico-header">
-      <h2>Itens do balanço <span id="contadorHistorico" class="conf-badge">0</span></h2>
+      <h2>Vendas registradas <span id="contadorHistorico" class="conf-badge">0</span></h2>
       <div class="conf-historico-botoes">
         <button id="btnRessincronizar" class="btn-conf btn-pequeno btn-secundario" onclick="ressincronizarPendentes()" style="display:none;">🔄 Ressincronizar pendentes</button>
-        <button class="btn-conf btn-pequeno" onclick="exportarXLSX()">📊 Exportar balanço (XLSX)</button>
+        <button class="btn-conf btn-pequeno" onclick="exportarXLSX()">📊 Exportar vendas (XLSX)</button>
         <button class="btn-conf btn-pequeno btn-secundario" onclick="exportarCSV()">⬇️ CSV</button>
         <button class="btn-conf btn-pequeno btn-secundario" onclick="exportarTXT()">📄 TXT</button>
         <button class="btn-conf btn-pequeno btn-secundario" onclick="limparHistorico()">🗑️ Limpar tudo</button>
@@ -163,7 +164,7 @@
         </thead>
         <tbody id="corpoHistorico"></tbody>
       </table>
-      <p id="historicoVazio" class="conf-vazio">Nenhum registro salvo ainda.</p>
+      <p id="historicoVazio" class="conf-vazio">Nenhuma venda registrada ainda.</p>
     </div>
   </section>
 
@@ -173,6 +174,6 @@
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="conformidade.js" defer></script>
+<script src="venda-controlados.js" defer></script>
 </body>
 </html>

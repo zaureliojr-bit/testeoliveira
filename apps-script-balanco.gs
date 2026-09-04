@@ -1,17 +1,23 @@
 /**
  * Código do Google Apps Script para receber, em tempo real, os itens
- * escaneados nos painéis de balanço (conformidade.html e
- * balanco-medicamentos.html) e gravá-los numa Planilha Google — pra uma
+ * escaneados nos painéis (conformidade.html, balanco-medicamentos.html
+ * e venda-controlados.html) e gravá-los numa Planilha Google — pra uma
  * segunda pessoa acompanhar ao vivo e ir copiando pro SNGPC.
  *
  * Também recebe as edições feitas depois (ex: corrigir uma validade
  * digitada errada): em vez de duplicar a linha, ele encontra a linha
  * pelo ID do item e atualiza os dados nela.
  *
- * COMO CONFIGURAR (uma vez só):
+ * Esse mesmo código serve pra qualquer um dos painéis — só use uma
+ * Planilha Google (e uma implantação) DIFERENTE para cada painel, pra
+ * não misturar contagem física, material geral e vendas na mesma lista.
+ * Se quiser, mude o nome abaixo em NOME_ABA_ pra deixar mais claro qual
+ * é qual (ex: "Vendas" na planilha do venda-controlados.html).
+ *
+ * COMO CONFIGURAR (uma vez pra cada painel/planilha):
  *
  * 1. Crie uma Planilha Google nova (sheets.new), com o nome que quiser
- *    (ex: "Balanço de Controlados").
+ *    (ex: "Balanço de Controlados" ou "Vendas de Controlados").
  *
  * 2. No menu da planilha: Extensões → Apps Script.
  *
@@ -45,6 +51,8 @@
  * por cima e implantar de novo — o cabeçalho da planilha se atualiza
  * sozinho, sem mexer nas linhas que já existem.
  */
+
+var NOME_ABA_ = "Balanço"; // pode renomear (ex: "Vendas") antes de implantar numa planilha nova
 
 var CABECALHO_ = [
   "Data/Hora", "Registro MS", "Descrição", "Apresentação",
@@ -94,10 +102,10 @@ function doGet(e) {
 
 function abaBalanco_() {
   var planilha = SpreadsheetApp.getActiveSpreadsheet();
-  var aba = planilha.getSheetByName("Balanço");
+  var aba = planilha.getSheetByName(NOME_ABA_);
 
   if (!aba) {
-    aba = planilha.insertSheet("Balanço");
+    aba = planilha.insertSheet(NOME_ABA_);
     aba.appendRow(CABECALHO_);
     aba.setFrozenRows(1);
     return aba;
