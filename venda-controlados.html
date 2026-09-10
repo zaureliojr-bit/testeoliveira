@@ -136,7 +136,7 @@
     <div class="conf-grid">
       <div class="conf-campo conf-campo-full">
         <label for="campoClienteNome">Nome</label>
-        <input type="text" id="campoClienteNome" placeholder="Nome completo do cliente">
+        <input type="text" id="campoClienteNome" placeholder="Nome completo do cliente" oninput="uppercaseInput(this)">
       </div>
       <div class="conf-campo">
         <label for="campoClienteRg">RG</label>
@@ -144,7 +144,7 @@
       </div>
       <div class="conf-campo conf-campo-full">
         <label for="campoClienteEndereco">Endereço</label>
-        <input type="text" id="campoClienteEndereco" placeholder="Rua, número, bairro, cidade">
+        <input type="text" id="campoClienteEndereco" placeholder="Rua, número, bairro, cidade" oninput="uppercaseInput(this)">
       </div>
     </div>
 

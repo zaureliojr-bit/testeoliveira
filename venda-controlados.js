@@ -447,9 +447,9 @@ async function salvarRegistro() {
   const validade = el("campoValidade").value;
   const quantidade = el("campoQuantidade").value;
   const vendedor = el("campoVendedor").value.trim().toUpperCase();
-  const clienteNome = el("campoClienteNome").value.trim();
+  const clienteNome = el("campoClienteNome").value.trim().toUpperCase();
   const clienteRg = el("campoClienteRg").value.trim();
-  const clienteEndereco = el("campoClienteEndereco").value.trim();
+  const clienteEndereco = el("campoClienteEndereco").value.trim().toUpperCase();
 
   if (!descricao) return toast("Informe ao menos a descrição do produto");
   if (!lote) return toast("Informe o lote");
