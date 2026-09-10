@@ -9,7 +9,7 @@ const VENDEDOR_KEY = "vendaControladosUltimoVendedor";
 // Planilha de vendas já configurada por padrão, pra não precisar colar a URL
 // toda vez que o app for aberto num aparelho novo. Ainda dá pra trocar pela
 // seção "☁️ Sincronização" se um dia precisar apontar pra outra planilha.
-const URL_NUVEM_PADRAO = "https://script.google.com/macros/s/AKfycbyizrk2LjUhN67_z1E-cjc7QAh96lxXrzfzm45gchiNT3arbgipDKnN20cTjzZ4ktkwGQ/exec";
+const URL_NUVEM_PADRAO = "https://script.google.com/macros/s/AKfycbxT9I18dGjitzCb85VfLrZxHGVszoNGuvH3u9JjSO1XlTQ7shlglMFQ_LXGc2uw9dlnVA/exec";
 
 /* =========================
 🗄️ ESTADO
