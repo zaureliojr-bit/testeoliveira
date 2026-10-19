@@ -15,6 +15,8 @@ let leitorAtivo = null;
 let ultimoCodigoLido = "";
 let ultimoCodigoTimestamp = 0;
 let indiceEmEdicao = null; // índice do historico sendo editado, ou null se for um item novo
+const ITENS_POR_PAGINA_HISTORICO = 30;
+let paginaHistorico = 0;
 
 /* =========================
 🛠️ HELPERS
@@ -442,6 +444,7 @@ async function salvarRegistro() {
     historico[indiceEmEdicao] = registro;
   } else {
     historico.unshift(registro);
+    paginaHistorico = 0; // mostra o item recém-salvo, que entra no topo da lista
   }
 
   localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
@@ -477,6 +480,7 @@ function statusNuvemLinha(r) {
 function renderHistorico() {
   const corpo = el("corpoHistorico");
   const vazio = el("historicoVazio");
+  const paginacao = el("paginacaoHistorico");
 
   el("contadorHistorico").textContent = historico.length;
   atualizarBotaoRessincronizar();
@@ -484,12 +488,23 @@ function renderHistorico() {
   if (!historico.length) {
     corpo.innerHTML = "";
     vazio.style.display = "block";
+    paginacao.style.display = "none";
     return;
   }
 
   vazio.style.display = "none";
 
-  corpo.innerHTML = historico.map((r, i) => `
+  const totalPaginas = Math.max(1, Math.ceil(historico.length / ITENS_POR_PAGINA_HISTORICO));
+  if (paginaHistorico >= totalPaginas) paginaHistorico = totalPaginas - 1;
+  if (paginaHistorico < 0) paginaHistorico = 0;
+
+  const inicio = paginaHistorico * ITENS_POR_PAGINA_HISTORICO;
+  const fim = Math.min(inicio + ITENS_POR_PAGINA_HISTORICO, historico.length);
+  const pagina = historico.slice(inicio, fim);
+
+  corpo.innerHTML = pagina.map((r, iPagina) => {
+    const i = inicio + iPagina; // índice real no array historico, pra editar/remover certo
+    return `
     <tr>
       <td class="conf-codigo-copiar" onclick="copiarCodigo('${r.codigo}')" title="Toque para copiar">${r.codigo || "-"} 📋</td>
       <td>${r.registroMs || "-"}</td>
@@ -504,7 +519,28 @@ function renderHistorico() {
         <button class="btn-remover" onclick="removerRegistro(${i})" aria-label="Remover">🗑️</button>
       </td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
+
+  paginacao.style.display = totalPaginas > 1 ? "flex" : "none";
+  el("paginacaoTexto").textContent = `Página ${paginaHistorico + 1} de ${totalPaginas} (${historico.length} registros)`;
+  paginacao.querySelector("button:first-child").disabled = paginaHistorico === 0;
+  paginacao.querySelector("button:last-child").disabled = paginaHistorico >= totalPaginas - 1;
+}
+
+function irParaPaginaAnterior() {
+  if (paginaHistorico <= 0) return;
+  paginaHistorico--;
+  renderHistorico();
+  el("corpoHistorico").closest(".conf-card").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function irParaProximaPagina() {
+  const totalPaginas = Math.max(1, Math.ceil(historico.length / ITENS_POR_PAGINA_HISTORICO));
+  if (paginaHistorico >= totalPaginas - 1) return;
+  paginaHistorico++;
+  renderHistorico();
+  el("corpoHistorico").closest(".conf-card").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function removerRegistro(indice) {
@@ -520,6 +556,7 @@ function limparHistorico() {
 
   limparResultado();
   historico = [];
+  paginaHistorico = 0;
   localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
   renderHistorico();
 }
