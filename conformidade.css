@@ -296,7 +296,47 @@ input[readonly] { background: var(--bg); color: var(--text-muted); }
 .conf-badge-ok { background: #e6f9ee; color: #1a8f4c; }
 .conf-badge-erro { background: #fdeaea; color: var(--danger); }
 
-.conf-tabela-wrap { overflow-x: auto; }
+.conf-tabela-wrap {
+  overflow-x: auto;
+  scrollbar-width: auto; /* Firefox: mantém a barra visível em vez de "thin"/auto-esconder */
+}
+
+.conf-tabela-wrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.conf-tabela-wrap::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-radius: 999px;
+}
+
+.conf-tabela-wrap::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 999px;
+}
+
+.conf-tabela-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+.conf-paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.conf-paginacao-texto {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.conf-paginacao .btn-conf:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 
 .conf-tabela {
   width: 100%;
